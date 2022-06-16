@@ -7,7 +7,7 @@ export const createPost = async (req, res) => {
 
   try {
     await newPost.save();
-    res.status(200).json("新しい投稿が作成されました。");
+    res.status(200).json(newPost);
   } catch (error) {
     res.status(500).json(error);
   }
