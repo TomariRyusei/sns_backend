@@ -1,5 +1,6 @@
 import UserModel from "../Models/UserModel.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 // ユーザー情報取得
 export const getUser = async (req, res) => {
@@ -20,9 +21,9 @@ export const getUser = async (req, res) => {
 // ユーザー情報更新
 export const updateUser = async (req, res) => {
   const id = req.params.id;
-  const { currentUserId, currentUserAdminStatus, password } = req.body;
+  const { _id, currentUserAdminStatus, password } = req.body;
 
-  if (id === currentUserId || currentUserAdminStatus) {
+  if (id === _id || currentUserAdminStatus) {
     try {
       // パスワード変更があればハッシュ化
       if (password) {
@@ -33,8 +34,16 @@ export const updateUser = async (req, res) => {
       const user = await UserModel.findByIdAndUpdate(id, req.body, {
         new: true,
       });
-      res.status(200).json(user);
+
+      const token = jwt.sign(
+        { username: user.username, id: user._id },
+        process.env.JWT_KEY,
+        { expiresIn: "1h" }
+      );
+
+      res.status(200).json({ user, token });
     } catch (error) {
+      console.log(error);
       res.status(500).json(error);
     }
   } else {

@@ -85,7 +85,6 @@ export const getTimelinePosts = async (req, res) => {
 
   try {
     const currentUserPosts = await PostModel.find({ userId: userId });
-    console.log(currentUserPosts);
     const followingPosts = await UserModel.aggregate([
       {
         $match: {
