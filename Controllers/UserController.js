@@ -18,6 +18,20 @@ export const getUser = async (req, res) => {
   }
 };
 
+// 全ユーザー情報取得
+export const getAllUsers = async (req, res) => {
+  try {
+    let users = await UserModel.find();
+    users = users.map((user) => {
+      const { password, ...otherDetails } = user._doc;
+      return otherDetails;
+    });
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
+
 // ユーザー情報更新
 export const updateUser = async (req, res) => {
   const id = req.params.id;
@@ -76,19 +90,19 @@ export const deleteUser = async (req, res) => {
 // ユーザーをフォローする
 export const followUser = async (req, res) => {
   const id = req.params.id;
-  const { currentUserId } = req.body;
+  const { _id } = req.body;
 
-  if (currentUserId === id) {
+  if (_id === id) {
     res
       .status(403)
       .json("アクセスが拒否されました。自身をフォロワーすることはできません。");
   } else {
     try {
       const followUser = await UserModel.findById(id);
-      const followingUser = await UserModel.findById(currentUserId);
+      const followingUser = await UserModel.findById(_id);
 
-      if (!followUser.followers.includes(currentUserId)) {
-        await followUser.updateOne({ $push: { followers: currentUserId } });
+      if (!followUser.followers.includes(_id)) {
+        await followUser.updateOne({ $push: { followers: _id } });
         await followingUser.updateOne({ $push: { followings: id } });
         res.status(200).json("ユーザーをフォロワーしました。");
       } else {
@@ -107,19 +121,19 @@ export const followUser = async (req, res) => {
 // フォロワーを解除する
 export const UnFollowUser = async (req, res) => {
   const id = req.params.id;
-  const { currentUserId } = req.body;
+  const { _id } = req.body;
 
-  if (currentUserId === id) {
+  if (_id === id) {
     res
       .status(403)
       .json("アクセスが拒否されました。自身をフォロワーすることはできません。");
   } else {
     try {
       const followUser = await UserModel.findById(id);
-      const followingUser = await UserModel.findById(currentUserId);
+      const followingUser = await UserModel.findById(_id);
 
-      if (followUser.followers.includes(currentUserId)) {
-        await followUser.updateOne({ $pull: { followers: currentUserId } });
+      if (followUser.followers.includes(_id)) {
+        await followUser.updateOne({ $pull: { followers: _id } });
         await followingUser.updateOne({ $pull: { followings: id } });
         res.status(200).json("フォローを解除しました。");
       } else {
